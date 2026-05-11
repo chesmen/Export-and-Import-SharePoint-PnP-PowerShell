@@ -1,0 +1,43 @@
+#Use this for generating a fresh template and uploading to the new tenant automatically
+
+
+$sourceSiteURL = "https://sharepoint_siteName.sharepoint.com/sites/CG_Qualitaetsmanagement" 
+$targetSiteURL = "https://sharepoint_siteName.sharepoint.com/sites/SH_Qualitaetsmanagement"
+
+#connect to the source site
+Connect-PnPOnline -Url $sourceSiteURL -ClientID 0000003c-0000-42b4-9db5-0000000 -Interactive
+
+#Export the site template
+
+Get-PnpSiteTemplate -Out "C:\export\NewSiteTemplate.xml"
+
+#Connect to the target site
+Connect-PnPOnline -Url $targetSiteURL -ClientID 0000000-16c3-00000-907d-000000 -Interactive
+
+# List of default system lists to skip
+$systemLists = @(
+"Site Pages", "Documents", "AppData", "User Information List",
+"Master Page Gallery", "Style Library", "Theme Gallery",
+"Solution Gallery", "TaxonomyHiddenList", "web Part Gallery"
+)
+#Check if a list exists before creating it
+Get-PnPList | ForEach-Object {
+if ($systemLists -notcontains $_.Title) {
+    Write-Host "Skipping system list: $($_.Title)"
+} else {
+   Write-Host "List exists: $($_.Title)"
+       }
+    }
+
+# Now apply the template (if list doesn't exist or you have already removed unnecessary ones)
+Invoke-PnPSiteTemplate -Path "C:\export\NewSiteTemplate.xml" #-ClearNavigation
+
+Write-Host "Template applied successfully"
+
+
+#If you already have the template and want to just upload, the use this code below
+
+#$templatePath = "C:\export\NewSiteTemplate.xml"
+#$targetSite   = "https://sharepoint_siteName.sharepoint.com/sites/SH_Qualitaetsmanagement"
+#Connect-PnPOnline -Url $targetSite -ClientID 0000000-16c3-00000-907d-000000 -Interactive
+#Invoke-PnPSiteTemplate -Path $templatePath #-Url $targetSite
